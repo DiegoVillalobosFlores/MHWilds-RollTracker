@@ -10,7 +10,7 @@ export default async function RollsManagement(
   const rolls = await db`
     select r.hunter_weapon_id, class, element, hunter_weapon_ability_group_skill as "Skill Group", hunter_weapon_ability_set_bonus as "Set Bonus" from HunterWeaponRoll r
     join HunterWeapon hw on r.hunter_weapon_id = hw.id
-    where r.hunter_weapon_id in (${weaponIDs})`;
+    where r.hunter_weapon_id in ${sql(weaponIDs)}`;
 
   if (!rolls.length) {
     return AddRollWeaponSelection(db, weaponIDs);

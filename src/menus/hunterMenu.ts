@@ -9,6 +9,8 @@ export default async function HunterMenu(
 ): Promise<Menu> {
   const hunter = await db`select * from Hunter where name = ${hunter_name}`;
 
+  await db`update Hunter set isLastUsed = true where name = ${hunter_name}`;
+
   return {
     parseInput(line: string): Promise<Menu> {
       if (line === "1") {

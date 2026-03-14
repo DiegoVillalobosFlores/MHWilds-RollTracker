@@ -10,7 +10,8 @@ create table if not exists WeaponElement
 
 create table if not exists Hunter
 (
-    name TEXT primary key unique
+    name TEXT primary key unique,
+    isLastUsed BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS HunterWeapon

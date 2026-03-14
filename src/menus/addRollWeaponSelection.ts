@@ -1,4 +1,4 @@
-import type { SQL } from "bun";
+import { sql, type SQL } from "bun";
 import type { Menu } from "../menuManager";
 import AddRoll from "./addRoll";
 
@@ -6,9 +6,17 @@ export default async function AddRollWeaponSelection(
   db: SQL,
   weaponIDs: Array<number>,
 ): Promise<Menu> {
+  if (weaponIDs.length === 1) {
+    const onlyWeaponId = weaponIDs.at(0);
+
+    if (onlyWeaponId) {
+      return AddRoll(db, onlyWeaponId, null, null);
+    }
+  }
+
   const weapons = await db`
     select * from HunterWeapon
-    where id in (${weaponIDs})`;
+    where id in ${sql(weaponIDs)}`;
 
   return {
     parseInput: async (line: string) => {
