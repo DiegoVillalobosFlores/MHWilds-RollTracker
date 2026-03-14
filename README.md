@@ -1,4 +1,4 @@
-# mhwildsartiantracker
+# Monster Hunter Wilds Artian/Gogma Roll Tracker
 
 To install dependencies:
 
