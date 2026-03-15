@@ -1,38 +1,48 @@
 import { SQL } from "bun";
-import MainMenu from "./src/menus/mainMenu";
 import MenuManager from "./src/menuManager";
 
-console.log("Welcome to the tracker!");
+const initDb = async () => {
+  const sqliteDir = "./sqlite";
 
-console.log("\nInitializing Database...");
-const sqliteDir = "./sqlite";
+  const sqlDirInit = Bun.file(`${sqliteDir}/init.txt`);
 
-const sqlDirInit = Bun.file(`${sqliteDir}/init.txt`);
+  await sqlDirInit.write("");
 
-await sqlDirInit.write("");
+  const db = new SQL({
+    adapter: "sqlite",
+    filename: `${sqliteDir}/rollTracker.wilds`,
+  });
 
-const db = new SQL({
-  adapter: "sqlite",
-  filename: `${sqliteDir}/rollTracker.wilds`,
-});
+  try {
+    await db`PRAGMA foreign_keys = ON;`;
+    await db`PRAGMA journal_mode = WAL;`;
+    await db.file("./src/migrations/1.sql");
+  } catch (e) {
+    console.error(e);
+  }
 
-try {
-  await db`PRAGMA foreign_keys = ON;`;
-  await db`PRAGMA journal_mode = WAL;`;
-  await db.file("./src/migrations/1.sql");
-} catch (e) {
-  console.error(e);
-}
+  console.log("Database initialized successfully ✅");
 
-console.log("Database initialized successfully ✅");
+  return db;
+};
 
-process.on("SIGINT", () => {
-  console.log("\nGoodbye!");
-  db.close();
-  process.exit();
-});
+const main = async () => {
+  console.log("Welcome to the tracker!");
 
-await MenuManager(db);
+  console.log("\nInitializing Database...");
+
+  const db = await initDb();
+
+  process.on("SIGINT", () => {
+    console.log("\nGoodbye!");
+    db.close();
+    process.exit();
+  });
+
+  await MenuManager(db);
+};
+
+main();
 
 /*
 - arma1 arma2 arma3
