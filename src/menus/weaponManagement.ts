@@ -21,7 +21,8 @@ export default async function WeaponManagement(
 
   const menuOptions = formatMenuOptions([
     ...weapons.map((weapon, i) => ({
-      command: String(i + 1),
+      command:
+        `${weapon.element.substring(0, 1)}${weapon.class.substring(0, 3)}${weapon.id}`.toLocaleLowerCase(),
       displayLabel: weapon.name,
       action: () => WeaponMenu(db, weapon.id, hunter_name),
     })),
