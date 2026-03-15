@@ -8,24 +8,24 @@ export type Menu = {
 
 export default async function MenuManager(db: SQL) {
   let activeMenu = await MainMenu(db);
-  let backMenu: Menu | null = null;
+  let backMenus: Array<Menu> = [];
 
   await activeMenu.render();
   console.log("\ngg: Exit");
   for await (const line of console) {
     if (line.trim() !== "gg") {
-      backMenu = activeMenu;
+      backMenus.push(activeMenu);
       activeMenu = await activeMenu.parseInput(line);
     }
     if (line.trim() === "gg") {
-      if (!backMenu) {
+      if (!backMenus.length) {
         console.log("\nGoodbye!");
         process.exit(0);
       }
-      activeMenu = backMenu;
+      activeMenu = backMenus.pop()!;
     }
     console.log("\n");
     await activeMenu.render();
-    console.log("\ngg: Back");
+    console.log(backMenus.length ? "\ngg: Back" : "\ngg: Exit");
   }
 }
