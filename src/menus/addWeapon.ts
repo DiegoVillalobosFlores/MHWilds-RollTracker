@@ -1,6 +1,9 @@
 import type { SQL } from "bun";
 import type { Menu } from "../menuManager";
 import WeaponManagement from "./weaponManagement";
+import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import MainMenu from "./mainMenu";
+import HunterMenu from "./hunterMenu";
 
 export default async function AddWeapon(
   db: SQL,
@@ -16,7 +19,7 @@ export default async function AddWeapon(
       `Adding ${selectedElement} ${selectedClass} ${hunter_name} weapon...`,
     );
 
-    await db`insert into HunterWeapon (hunter_name, class, element) values (${hunter_name}, ${selectedClass}, ${selectedElement})`;
+    await db`insert into HunterWeapon (hunter_name, class, element, name) values (${hunter_name}, ${selectedClass}, ${selectedElement}, ${selectedElement + " " + selectedClass})`;
 
     console.group();
     console.log("Weapon added successfully! ✅");
@@ -26,56 +29,66 @@ export default async function AddWeapon(
     return WeaponManagement(db, hunter_name);
   }
 
+  const options = [
+    {
+      displayLabel: `${hunter_name}'s Weapons`,
+      command: "hw",
+      action: () => WeaponManagement(db, hunter_name),
+    },
+    {
+      displayLabel: `${hunter_name}'s Menu`,
+      command: "mm",
+      action: () => HunterMenu(db, hunter_name),
+    },
+    {
+      displayLabel: `Main Menu`,
+      command: "mm",
+      action: () => MainMenu(db),
+    },
+  ];
+
+  const classMenuOptions = formatMenuOptions([
+    ...weaponClasses.map((weaponClass, i) => ({
+      displayLabel: weaponClass.class,
+      command: weaponClass.class.substring(0, 3).toLowerCase(),
+      action: () => AddWeapon(db, weaponClass.class, null, hunter_name),
+    })),
+    ...options,
+  ]);
+
+  const elementMenuOptions = formatMenuOptions([
+    ...weaponElements.map((weaponElement, i) => ({
+      displayLabel: weaponElement.element,
+      command: weaponElement.element.substring(0, 1).toLowerCase(),
+      action: () =>
+        AddWeapon(db, selectedClass, weaponElement.element, hunter_name),
+    })),
+    ...options,
+  ]);
+
   return {
     parseInput(line: string): Promise<Menu> {
-      if (!selectedClass) {
-        const newWeaponClass = weaponClasses[Number(line) - 1];
+      const option = !selectedClass
+        ? classMenuOptions.handler[line]
+        : elementMenuOptions.handler[line];
 
-        if (!newWeaponClass) {
-          console.log(
-            "Capcom hasn't released that weapon class yet. Wait for MH Modern Warfare III",
-          );
-          return AddWeapon(db, null, null, hunter_name);
-        }
-
-        return AddWeapon(db, newWeaponClass.class, null, hunter_name);
+      if (!option) {
+        return AddWeapon(db, selectedClass, selectedElement, hunter_name);
       }
 
-      if (!selectedElement) {
-        const newWeaponElement = weaponElements[Number(line) - 1];
-
-        if (!newWeaponElement) {
-          console.log(
-            "Capcom hasn't released that element yet. Wait for MH Ultramoon",
-          );
-          return AddWeapon(db, selectedClass, null, hunter_name);
-        }
-
-        return AddWeapon(
-          db,
-          selectedClass,
-          weaponElements[Number(line) - 1].element,
-          hunter_name,
-        );
-      }
-
-      return AddWeapon(db, selectedClass, selectedElement, hunter_name);
+      return option();
     },
     async render() {
       if (!selectedClass) {
         console.log("Which Weapon Class?:");
-        for (let i = 0; i < weaponClasses.length; i++) {
-          console.log(`${i + 1}. ${weaponClasses[i].class}`);
-        }
+        console.table(classMenuOptions.menu);
 
         return;
       }
 
       if (!selectedElement) {
         console.log("Which Element?:");
-        for (let i = 0; i < weaponElements.length; i++) {
-          console.log(`${i + 1}. ${weaponElements[i].element}`);
-        }
+        console.table(elementMenuOptions.menu);
       }
     },
   };

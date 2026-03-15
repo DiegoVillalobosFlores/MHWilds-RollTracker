@@ -1,64 +1,132 @@
 import { sql, type SQL } from "bun";
 import type { Menu } from "../menuManager";
 import AddRollWeaponSelection from "./addRollWeaponSelection";
+import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import HunterMenu from "./hunterMenu";
+import WeaponManagement from "./weaponManagement";
+import HunterManagement from "./hunterManagement";
+import MainMenu from "./mainMenu";
+import AddRoll from "./addRoll";
+import AddWeapon from "./addWeapon";
 
 export default async function RollsManagement(
   db: SQL,
-  weaponIDs: Array<number>,
+  filteredWeaponIDs: Array<number> | null,
+  hunter_name: string,
 ): Promise<Menu> {
+  const hunterWeapons =
+    await db`select * from HunterWeapon where hunter_name = ${hunter_name}`;
+
+  if (hunterWeapons.length === 0) {
+    console.error(`${hunter_name} has no weapons, adding a new weapon`);
+    return AddWeapon(db, null, null, hunter_name);
+  }
+
+  const hunterWeaponIDs = filteredWeaponIDs
+    ? filteredWeaponIDs
+    : hunterWeapons.map((w) => w.id);
+
   const rolls = await db`
     select r.hunter_weapon_id, class, element, hunter_weapon_ability_group_skill as "Skill Group", hunter_weapon_ability_set_bonus as "Set Bonus" from HunterWeaponRoll r
     join HunterWeapon hw on r.hunter_weapon_id = hw.id
-    where r.hunter_weapon_id in ${sql(weaponIDs)} order by r.created_at`;
+    where r.hunter_weapon_id in ${sql(hunterWeaponIDs)} order by r.created_at`;
+
+  if (!rolls.length) {
+    console.error(
+      `${hunter_name} has no weapons with rolls, adding a new roll`,
+    );
+    return AddRollWeaponSelection(db, hunterWeaponIDs, hunter_name);
+  }
+
+  const filteredWeapons = hunterWeaponIDs.reduce(
+    (acc, weapon) => {
+      acc.push(hunterWeapons.find((w) => w.id === weapon));
+      return acc;
+    },
+    [] as Array<{ id: number; element: string; class: string; name: string }>,
+  );
+
+  const menuOptions = formatMenuOptions([
+    ...filteredWeapons.map((weapon) => ({
+      command: `aw${weapon.id}`,
+      displayLabel: `Add Roll to Weapon ${weapon.id}`,
+      action: () => AddRoll(db, weapon.id, null, null, hunter_name),
+      additionalInfo: {
+        Weapon: `${weapon.id} ${weapon.name}`,
+      },
+    })),
+    {
+      command: "wm",
+      displayLabel: `${hunter_name}'s Weapons`,
+      action: () => WeaponManagement(db, hunter_name),
+    },
+    {
+      command: "hm",
+      displayLabel: `${hunter_name}'s Menu`,
+      action: () => HunterMenu(db, hunter_name),
+    },
+    {
+      command: "hsm",
+      displayLabel: `Hunter Management Menu`,
+      action: () => HunterManagement(db),
+    },
+    {
+      command: "mm",
+      displayLabel: `Main Menu`,
+      action: () => MainMenu(db),
+    },
+    filteredWeaponIDs && hunterWeapons.length !== filteredWeaponIDs.length
+      ? {
+          command: "0",
+          displayLabel: `View all ${hunter_name} Rolls`,
+          action: () =>
+            RollsManagement(
+              db,
+              hunterWeapons.map((w) => w.id),
+              hunter_name,
+            ),
+        }
+      : null,
+  ]);
 
   const formattedRolls = rolls.reduce((acc, roll) => {
-    const weaponProperty = `${roll.hunter_weapon_id} ${roll.class} ${roll.element}`;
-
-    if (!acc.length) {
-      return [
-        {
-          [weaponProperty]: `${roll["Skill Group"]} ${roll["Set Bonus"]}`,
-        },
-      ];
-    }
+    const weaponProperty = `${roll.element} ${roll.class} ${roll.hunter_weapon_id}`;
+    const rollName = `${roll["Skill Group"]} ${roll["Set Bonus"]}`;
 
     for (let i = 0; i < acc.length; i++) {
       if (!acc[i][weaponProperty]) {
-        acc[i][weaponProperty] = `${roll["Skill Group"]} ${roll["Set Bonus"]}`;
+        acc[i][weaponProperty] = rollName;
         return acc;
       }
     }
 
     acc.push({
-      [weaponProperty]: `${roll["Skill Group"]} ${roll["Set Bonus"]}`,
+      [weaponProperty]: rollName,
     });
     return acc;
   }, []);
 
-  if (!rolls.length) {
-    return AddRollWeaponSelection(db, weaponIDs);
-  }
-
   return {
     parseInput: async (line: string) => {
-      if (line === "0") {
-        return AddRollWeaponSelection(db, weaponIDs);
-      }
+      const action = menuOptions.handler[line];
 
-      return RollsManagement(db, weaponIDs);
+      if (!action) return RollsManagement(db, filteredWeaponIDs, hunter_name);
+
+      return action();
     },
     render: async () => {
-      console.log("Rolls:");
-      console.log("0: Add Roll");
-      console.group();
-      // console.log("Weapon: \t | Skill Group: \t | Set Bonus: ");
-      // for (const roll of rolls) {
-      //   console.log(
-      //     `${roll.element} ${roll.class} \t | ${roll.hunter_weapon_ability_group_skill} \t | ${roll.hunter_weapon_ability_set_bonus}`,
-      //   );
-      // }
+      if (filteredWeaponIDs && hunterWeaponIDs.length === 1) {
+        console.log(`${hunter_name}'s ${filteredWeapons[0]?.name} Rolls:`);
+      }
+
+      if (
+        !filteredWeaponIDs ||
+        filteredWeaponIDs.length === hunterWeapons.length
+      ) {
+        console.log(`${hunter_name}'s Rolls:`);
+      }
       console.table(formattedRolls);
-      console.groupEnd();
+      console.table(menuOptions.menu);
     },
   };
 }

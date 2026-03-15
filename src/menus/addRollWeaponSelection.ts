@@ -1,10 +1,16 @@
 import { sql, type SQL } from "bun";
 import type { Menu } from "../menuManager";
 import AddRoll from "./addRoll";
+import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import MainMenu from "./mainMenu";
+import HunterManagement from "./hunterManagement";
+import HunterMenu from "./hunterMenu";
+import WeaponManagement from "./weaponManagement";
 
 export default async function AddRollWeaponSelection(
   db: SQL,
   weaponIDs: Array<number>,
+  hunter_name: string,
 ): Promise<Menu> {
   if (weaponIDs.length === 1) {
     const onlyWeaponId = weaponIDs.at(0);
@@ -18,21 +24,47 @@ export default async function AddRollWeaponSelection(
     select * from HunterWeapon
     where id in ${sql(weaponIDs)}`;
 
+  const menuOptions = formatMenuOptions([
+    ...weapons.map((weapon) => ({
+      command:
+        `${weapon.element.substring(0, 1)}${weapon.class.substring(0, 3)}${weapon.id}`.toLocaleLowerCase(),
+      displayLabel: `${weapon.name}`,
+      action: () => AddRoll(db, weapon.id, null, null, hunter_name),
+    })),
+    {
+      command: "wm",
+      displayLabel: `${hunter_name}'s Weapons`,
+      action: () => WeaponManagement(db, hunter_name),
+    },
+    {
+      command: "hm",
+      displayLabel: `${hunter_name}'s Menu`,
+      action: () => HunterMenu(db, hunter_name),
+    },
+    {
+      command: "hsm",
+      displayLabel: `Hunter Management Menu`,
+      action: () => HunterManagement(db),
+    },
+    {
+      command: "mm",
+      displayLabel: `Main Menu`,
+      action: () => MainMenu(db),
+    },
+  ]);
+
   return {
     parseInput: async (line: string) => {
-      const weapon = weapons[parseInt(line.trim()) - 1];
+      const option = menuOptions.handler[line];
 
-      if (!weapon) {
-        return AddRollWeaponSelection(db, weaponIDs);
+      if (!option) {
+        return AddRollWeaponSelection(db, weaponIDs, hunter_name);
       }
-      return AddRoll(db, weapon.id, null, null);
+      return option();
     },
     render: async () => {
-      console.log("No rolls found");
       console.log("Add roll for which weapon?");
-      for (let i = 0; i < weapons.length; i++) {
-        console.log(`${i + 1}: ${weapons[i].class} ${weapons[i].element}`);
-      }
+      console.table(menuOptions.menu);
     },
   };
 }

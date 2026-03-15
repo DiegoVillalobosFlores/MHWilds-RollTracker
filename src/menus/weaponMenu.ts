@@ -2,6 +2,7 @@ import { SQL } from "bun";
 import type { Menu } from "../menuManager";
 import { DeleteWeapon } from "./deleteWeapon";
 import RollsManagement from "./rollsManagement";
+import formatMenuOptions from "../utils.ts/formatMenuOptions";
 
 export default async function WeaponMenu(
   db: SQL,
@@ -13,23 +14,33 @@ export default async function WeaponMenu(
 
   const weapon = weapons[0];
 
+  const menuOptions = formatMenuOptions([
+    {
+      command: "r",
+      displayLabel: "View Rolls",
+      action: () => RollsManagement(db, [weaponId], hunter_name),
+    },
+    {
+      command: "delete",
+      displayLabel: `Delete ${weapon.name}`,
+      action: () => DeleteWeapon(db, weaponId, hunter_name),
+    },
+  ]);
+
   return {
     async parseInput(line: string): Promise<Menu> {
-      if (line === "0") {
-        return DeleteWeapon(db, weaponId, hunter_name);
+      const option = menuOptions.handler[line];
+
+      if (!option) {
+        return WeaponMenu(db, weaponId, hunter_name);
       }
 
-      if (line === "1") {
-        return await RollsManagement(db, [weaponId]);
-      }
-
-      return WeaponMenu(db, weaponId, hunter_name);
+      return option();
     },
     async render() {
-      console.log(`${weapon.element} ${weapon.class}`);
+      console.log(weapon.name);
       console.group();
-      console.log("0: Delete");
-      console.log("1: View Rolls");
+      console.table(menuOptions.menu);
       console.groupEnd();
     },
   };
