@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch index.ts"
+    "dev": "bun run --watch index.ts",
+    "compile:linux": "bun build --compile --target=bun-linux-x64 --minify --bytecode ./index.ts --outfile mhwilds-tracker"
   },
   "devDependencies": {
     "@types/bun": "latest"
