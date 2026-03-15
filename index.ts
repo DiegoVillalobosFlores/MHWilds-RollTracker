@@ -26,6 +26,12 @@ try {
 
 console.log("Database initialized successfully ✅");
 
+process.on("SIGINT", () => {
+  console.log("\nGoodbye!");
+  db.close();
+  process.exit();
+});
+
 await MenuManager(db);
 
 /*
