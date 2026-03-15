@@ -1,6 +1,5 @@
 import { sql, type SQL } from "bun";
 import type { Menu } from "../menuManager";
-import AddRoll from "./addRoll";
 import AddRollWeaponSelection from "./addRollWeaponSelection";
 
 export default async function RollsManagement(
@@ -10,7 +9,31 @@ export default async function RollsManagement(
   const rolls = await db`
     select r.hunter_weapon_id, class, element, hunter_weapon_ability_group_skill as "Skill Group", hunter_weapon_ability_set_bonus as "Set Bonus" from HunterWeaponRoll r
     join HunterWeapon hw on r.hunter_weapon_id = hw.id
-    where r.hunter_weapon_id in ${sql(weaponIDs)}`;
+    where r.hunter_weapon_id in ${sql(weaponIDs)} order by r.created_at`;
+
+  const formattedRolls = rolls.reduce((acc, roll) => {
+    const weaponProperty = `${roll.hunter_weapon_id} ${roll.class} ${roll.element}`;
+
+    if (!acc.length) {
+      return [
+        {
+          [weaponProperty]: `${roll["Skill Group"]} ${roll["Set Bonus"]}`,
+        },
+      ];
+    }
+
+    for (let i = 0; i < acc.length; i++) {
+      if (!acc[i][weaponProperty]) {
+        acc[i][weaponProperty] = `${roll["Skill Group"]} ${roll["Set Bonus"]}`;
+        return acc;
+      }
+    }
+
+    acc.push({
+      [weaponProperty]: `${roll["Skill Group"]} ${roll["Set Bonus"]}`,
+    });
+    return acc;
+  }, []);
 
   if (!rolls.length) {
     return AddRollWeaponSelection(db, weaponIDs);
@@ -34,7 +57,7 @@ export default async function RollsManagement(
       //     `${roll.element} ${roll.class} \t | ${roll.hunter_weapon_ability_group_skill} \t | ${roll.hunter_weapon_ability_set_bonus}`,
       //   );
       // }
-      console.table(rolls);
+      console.table(formattedRolls);
       console.groupEnd();
     },
   };
