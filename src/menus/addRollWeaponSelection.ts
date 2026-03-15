@@ -16,7 +16,7 @@ export default async function AddRollWeaponSelection(
     const onlyWeaponId = weaponIDs.at(0);
 
     if (onlyWeaponId) {
-      return AddRoll(db, onlyWeaponId, null, null);
+      return AddRoll(db, onlyWeaponId, null, null, hunter_name);
     }
   }
 
