@@ -32,9 +32,7 @@ export default async function RollsManagement(
     where r.hunter_weapon_id in ${sql(hunterWeaponIDs)} order by r.created_at`;
 
   if (!rolls.length) {
-    console.error(
-      `${hunter_name} has no weapons with rolls, adding a new roll`,
-    );
+    console.error(`No weapon rolls found, adding a new roll`);
     return AddRollWeaponSelection(db, hunterWeaponIDs, hunter_name);
   }
 
@@ -55,6 +53,18 @@ export default async function RollsManagement(
         Weapon: `${weapon.id} ${weapon.name}`,
       },
     })),
+    filteredWeaponIDs && hunterWeapons.length !== filteredWeaponIDs.length
+      ? {
+          command: "r",
+          displayLabel: `All ${hunter_name} Rolls`,
+          action: () =>
+            RollsManagement(
+              db,
+              hunterWeapons.map((w) => w.id),
+              hunter_name,
+            ),
+        }
+      : null,
     {
       command: "wm",
       displayLabel: `${hunter_name}'s Weapons`,
@@ -75,18 +85,6 @@ export default async function RollsManagement(
       displayLabel: `Main Menu`,
       action: () => MainMenu(db),
     },
-    filteredWeaponIDs && hunterWeapons.length !== filteredWeaponIDs.length
-      ? {
-          command: "0",
-          displayLabel: `View all ${hunter_name} Rolls`,
-          action: () =>
-            RollsManagement(
-              db,
-              hunterWeapons.map((w) => w.id),
-              hunter_name,
-            ),
-        }
-      : null,
   ]);
 
   const formattedRolls = rolls.reduce((acc, roll) => {
