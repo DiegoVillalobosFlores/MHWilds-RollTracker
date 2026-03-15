@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS HunterWeapon
     hunter_name  TEXT NOT NULL,
     class TEXT NOT NULL,
     element      TEXT NOT NULL,
+    name         TEXT NOT NULL,
     FOREIGN KEY (hunter_name) REFERENCES Hunter (name) on delete cascade,
     FOREIGN KEY (class) REFERENCES WeaponClass (class) on delete cascade,
     FOREIGN KEY (element) REFERENCES WeaponElement (element) on delete cascade
