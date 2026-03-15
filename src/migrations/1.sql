@@ -49,6 +49,12 @@ create table if not exists HunterWeaponSetBonus
     name TEXT primary key unique
 );
 
+CREATE TABLE if not exists Settings
+(
+    id   integer primary key autoincrement,
+    clear_console_on_render integer default 0
+);
+
 insert into WeaponClass
 values ('Great Sword'),
        ('Long Sword'),
@@ -125,3 +131,6 @@ values ("Alluring Pelt"),
        ("Scale Layering"),
        ("Scaling Prowess")
 on conflict (name) do nothing;
+
+insert into Settings (clear_console_on_render)
+values (0);

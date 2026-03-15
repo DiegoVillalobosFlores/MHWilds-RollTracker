@@ -11,7 +11,11 @@ export default async function MenuManager(db: SQL) {
 
   await activeMenu.render();
   for await (const line of console) {
+    const settings = await db`select * from settings limit 1`;
     console.log("\n");
+    if (settings[0].clear_console_on_render === 1) {
+      console.clear();
+    }
     activeMenu = await activeMenu.parseInput(line);
     await activeMenu.render();
   }

@@ -3,6 +3,7 @@ import type { Menu } from "../menuManager";
 import HunterManagement from "./hunterManagement";
 import RollsManagement from "./rollsManagement";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import SettingsMenu from "./settings";
 
 export default async function MainMenu(dbClient: SQL): Promise<Menu> {
   const lastUsedHunter = await dbClient`
@@ -10,6 +11,8 @@ export default async function MainMenu(dbClient: SQL): Promise<Menu> {
     where isLastUsed = true
     limit 1
   `;
+
+  const settings = await dbClient`select * from settings limit 1`;
 
   const menuOptions = formatMenuOptions([
     {
@@ -24,6 +27,16 @@ export default async function MainMenu(dbClient: SQL): Promise<Menu> {
           action: () => RollsManagement(dbClient, null, lastUsedHunter[0].name),
         }
       : null,
+    {
+      command: "s",
+      displayLabel: "Settings",
+      action: () =>
+        SettingsMenu(
+          dbClient,
+          false,
+          settings[0].clear_console_on_render === 1,
+        ),
+    },
     {
       command: "gg",
       displayLabel: "Exit",
