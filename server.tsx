@@ -80,11 +80,22 @@ const htmlRenderer = (msgQueue: string[]) => {
 };
 
 const server = Bun.serve({
-  fetch(req, server) {
+  port: process.env.PORT ?? 3000,
+  hostname: "0.0.0.0",
+  async fetch(req, server) {
+    const host = req.headers.get("host");
+    const wsUrl = process.env.WS_URL ?? `wss://${host}`;
     const success = server.upgrade(req, { data: { activeMenu } });
     if (success) return undefined;
 
-    return new Response(Bun.file("./src/web/index.html"));
+    const html = await Bun.file("./src/web/index.html").text();
+    const injected = html.replace(
+      "<head>",
+      `<head><script>window.__ENV__ = { WS_URL: ${JSON.stringify(wsUrl)} };</script>`,
+    );
+    return new Response(injected, {
+      headers: { "Content-Type": "text/html" },
+    });
   },
   websocket: {
     // TypeScript: specify the type of ws.data like this
