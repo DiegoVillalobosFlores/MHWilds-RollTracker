@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WebSocket Client1</title>
+        <style>
+            * {
+                box-sizing: border-box;
+                background-color: black;
+                color: white;
+            }
+            body {
+                font-family: sans-serif;
+                max-width: 800px;
+                margin: 2rem auto;
+                padding: 0 1rem;
+            }
+            #controls {
+                display: flex;
+                gap: 0.5rem;
+                margin-top: 2rem;
+            }
+            #controls input {
+                flex: 1;
+                padding: 0.5rem;
+                font-size: 1rem;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            #controls button {
+                padding: 0.5rem 1rem;
+                font-size: 1rem;
+                cursor: pointer;
+            }
+            #status {
+                font-size: 0.85rem;
+                color: #666;
+                margin-top: 0.5rem;
+            }
+            table {
+                border-collapse: collapse;
+                border: 2px solid rgb(140 140 140);
+                font-family: sans-serif;
+                font-size: 0.8rem;
+                letter-spacing: 1px;
+            }
+
+            caption {
+                caption-side: bottom;
+                padding: 10px;
+                font-weight: bold;
+            }
+
+            thead,
+            tfoot {
+                background-color: rgb(228 240 245);
+            }
+
+            th,
+            td {
+                border: 1px solid rgb(160 160 160);
+                padding: 8px 10px;
+            }
+
+            td:last-of-type {
+                text-align: center;
+            }
+
+            tbody > tr:nth-of-type(even) {
+                background-color: rgb(237 238 242);
+            }
+
+            tfoot th {
+                text-align: right;
+            }
+
+            tfoot td {
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="content"></div>
+
+        <div id="controls">
+            <input
+                id="msg-input"
+                type="text"
+                placeholder="Type a message to send..."
+            />
+            <button id="send-btn">Send</button>
+        </div>
+        <div id="status">Status: connecting…</div>
+
+        <!-- Script 1: WebSocket listener — replaces body HTML on incoming messages -->
+        <script>
+            const WS_URL = "ws://localhost:3000";
+            const MAX_RETRIES = 10;
+            const BASE_DELAY_MS = 1000;
+            const MAX_DELAY_MS = 30000;
+
+            let retryCount = 0;
+            let retryTimeout = null;
+
+            function getStatusEl() {
+                return document.getElementById("status");
+            }
+
+            function setStatus(text) {
+                const el = getStatusEl();
+                if (el) el.textContent = text;
+            }
+
+            function connect() {
+                const socket = new WebSocket(WS_URL);
+                window._ws = socket;
+
+                socket.addEventListener("open", () => {
+                    retryCount = 0;
+                    clearTimeout(retryTimeout);
+                    setStatus("Status: connected ✅");
+                });
+
+                socket.addEventListener("message", (event) => {
+                    const el = document.getElementById("content");
+                    if (el) el.innerHTML = event.data;
+                });
+
+                socket.addEventListener("close", () => {
+                    setStatus("Status: disconnected ❌");
+                    scheduleReconnect();
+                });
+
+                socket.addEventListener("error", (err) => {
+                    console.error("WebSocket error:", err);
+                    setStatus("Status: error ⚠️");
+                    // The "close" event will fire after "error", so reconnect is handled there
+                });
+            }
+
+            function scheduleReconnect() {
+                if (retryCount >= MAX_RETRIES) {
+                    setStatus(
+                        `Status: failed after ${MAX_RETRIES} attempts ❌`,
+                    );
+                    return;
+                }
+
+                // Exponential backoff with jitter: delay = min(BASE * 2^n, MAX) ± 20%
+                const exponential = BASE_DELAY_MS * Math.pow(2, retryCount);
+                const capped = Math.min(exponential, MAX_DELAY_MS);
+                const jitter = capped * 0.2 * (Math.random() - 0.5); // ±10% jitter
+                const delay = Math.round(capped + jitter);
+
+                retryCount++;
+                setStatus(
+                    `Status: reconnecting… (attempt ${retryCount}/${MAX_RETRIES} in ${(delay / 1000).toFixed(1)}s)`,
+                );
+
+                retryTimeout = setTimeout(connect, delay);
+            }
+
+            connect();
+        </script>
+
+        <!-- Script 2: Button + input to post messages to the same WebSocket -->
+        <script>
+            const sendBtn = document.getElementById("send-btn");
+            const msgInput = document.getElementById("msg-input");
+
+            function sendMessage() {
+                const msg = msgInput.value.trim();
+                if (!msg) return;
+
+                if (window._ws && window._ws.readyState === WebSocket.OPEN) {
+                    window._ws.send(msg);
+                    msgInput.value = "";
+                } else {
+                    alert("WebSocket is not connected.");
+                }
+            }
+
+            sendBtn.addEventListener("click", sendMessage);
+
+            msgInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") sendMessage();
+            });
+        </script>
+    </body>
+</html>

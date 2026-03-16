@@ -1,7 +1,7 @@
 import { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import WeaponMenu from "./weaponMenu";
 import WeaponManagement from "./weaponManagement";
+import type { Menu } from "../types/Menu";
 
 export async function DeleteWeapon(
   db: SQL,
@@ -16,7 +16,7 @@ export async function DeleteWeapon(
   return {
     async parseInput(line: string): Promise<Menu> {
       if (line === "1") {
-        console.log(`Aight bet, deleting ${weapon.element} ${weapon.class}`);
+        console.log(`Aight bet, deleting ${weapon.name}`);
         await db`delete from HunterWeapon where id = ${weaponId}`;
         return WeaponManagement(db, hunter_name);
       }
@@ -29,11 +29,11 @@ export async function DeleteWeapon(
       console.log("You ok bro?");
       return DeleteWeapon(db, weaponId, hunter_name);
     },
-    async render() {
-      console.log(`${weapon.element} ${weapon.class}`);
-      console.log(`Hey bruh, u shuh?`);
-      console.log("1: Ay m8, delete that shit fam");
-      console.log("2: Nah bro, I was tripin, mb");
+    async render(renderer) {
+      renderer.line(`${weapon.name}`);
+      renderer.line(`Hey bruh, u shuh?`);
+      renderer.line("1: Ay m8, delete that shit fam");
+      renderer.line("2: Nah bro, I was tripin, mb");
     },
   };
 }

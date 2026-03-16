@@ -1,8 +1,8 @@
 import { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import { DeleteWeapon } from "./deleteWeapon";
 import RollsManagement from "./rollsManagement";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import type { Menu } from "../types/Menu";
 
 export default async function WeaponMenu(
   db: SQL,
@@ -37,11 +37,9 @@ export default async function WeaponMenu(
 
       return option();
     },
-    async render() {
-      console.log(weapon.name);
-      console.group();
-      console.table(menuOptions.menu);
-      console.groupEnd();
+    async render(renderer) {
+      renderer.line(weapon.name);
+      renderer.table(menuOptions.menu);
     },
   };
 }

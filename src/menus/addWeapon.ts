@@ -1,9 +1,9 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import WeaponManagement from "./weaponManagement";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
 import MainMenu from "./mainMenu";
 import HunterMenu from "./hunterMenu";
+import type { Menu } from "../types/Menu";
 
 export default async function AddWeapon(
   db: SQL,
@@ -78,17 +78,17 @@ export default async function AddWeapon(
 
       return option();
     },
-    async render() {
+    async render(renderer) {
       if (!selectedClass) {
-        console.log("Which Weapon Class?:");
-        console.table(classMenuOptions.menu);
+        renderer.line("Which Weapon Class?:");
+        renderer.table(classMenuOptions.menu);
 
         return;
       }
 
       if (!selectedElement) {
-        console.log("Which Element?:");
-        console.table(elementMenuOptions.menu);
+        renderer.line("Which Element?:");
+        renderer.table(elementMenuOptions.menu);
       }
     },
   };

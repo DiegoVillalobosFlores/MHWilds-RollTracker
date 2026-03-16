@@ -1,10 +1,10 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import AddWeapon from "./addWeapon";
 import WeaponMenu from "./weaponMenu";
 import HunterManagement from "./hunterManagement";
 import MainMenu from "./mainMenu";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import type { Menu } from "../types/Menu";
 
 export default async function WeaponManagement(
   db: SQL,
@@ -53,11 +53,9 @@ export default async function WeaponManagement(
 
       return option();
     },
-    async render() {
-      console.log(`${hunter_name}'s Weapons:`);
-      console.group();
-      console.table(menuOptions.menu);
-      console.groupEnd();
+    async render(renderer) {
+      renderer.line(`${hunter_name}'s Weapons:`);
+      renderer.table(menuOptions.menu);
     },
   };
 }

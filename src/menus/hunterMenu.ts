@@ -1,11 +1,11 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import WeaponManagement from "./weaponManagement";
 import DeleteHunter from "./deleteHunter";
 import RollsManagement from "./rollsManagement";
 import HunterManagement from "./hunterManagement";
 import MainMenu from "./mainMenu";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import type { Menu } from "../types/Menu";
 
 export default async function HunterMenu(
   db: SQL,
@@ -62,11 +62,9 @@ export default async function HunterMenu(
 
       return action();
     },
-    async render(): Promise<void> {
-      console.log(`Managing hunter ${hunter_name}`);
-      console.group();
-      console.table(menuOptions.menu);
-      console.groupEnd();
+    async render(renderer): Promise<void> {
+      renderer.line(`Managing hunter ${hunter_name}`);
+      renderer.table(menuOptions.menu);
     },
   };
 }

@@ -1,7 +1,7 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
 import MainMenu from "./mainMenu";
+import type { Menu } from "../types/Menu";
 
 export default async function SettingsMenu(
   db: SQL,
@@ -34,8 +34,8 @@ export default async function SettingsMenu(
       if (!option) return SettingsMenu(db, false, clearConsoleOnRender);
       return option();
     },
-    render: async () => {
-      console.table(menuOptions.menu);
+    render: async (renderer) => {
+      renderer.table(menuOptions.menu);
     },
   };
 }

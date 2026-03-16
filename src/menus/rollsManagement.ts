@@ -1,5 +1,4 @@
 import { sql, type SQL } from "bun";
-import type { Menu } from "../menuManager";
 import AddRollWeaponSelection from "./addRollWeaponSelection";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
 import HunterMenu from "./hunterMenu";
@@ -8,6 +7,7 @@ import HunterManagement from "./hunterManagement";
 import MainMenu from "./mainMenu";
 import AddRoll from "./addRoll";
 import AddWeapon from "./addWeapon";
+import type { Menu } from "../types/Menu";
 
 export default async function RollsManagement(
   db: SQL,
@@ -112,19 +112,19 @@ export default async function RollsManagement(
 
       return action();
     },
-    render: async () => {
+    render: async (renderer) => {
       if (filteredWeaponIDs && hunterWeaponIDs.length === 1) {
-        console.log(`${hunter_name}'s ${filteredWeapons[0]?.name} Rolls:`);
+        renderer.line(`${hunter_name}'s ${filteredWeapons[0]?.name} Rolls:`);
       }
 
       if (
         !filteredWeaponIDs ||
         filteredWeaponIDs.length === hunterWeapons.length
       ) {
-        console.log(`${hunter_name}'s Rolls:`);
+        renderer.line(`${hunter_name}'s Rolls:`);
       }
-      console.table(formattedRolls);
-      console.table(menuOptions.menu);
+      renderer.table(formattedRolls);
+      renderer.table(menuOptions.menu);
     },
   };
 }

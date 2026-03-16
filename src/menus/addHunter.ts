@@ -1,6 +1,6 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import HunterManagement from "./hunterManagement";
+import type { Menu } from "../types/Menu";
 
 export default async function AddHunter(db: SQL): Promise<Menu> {
   return {
@@ -13,8 +13,8 @@ export default async function AddHunter(db: SQL): Promise<Menu> {
 
       return HunterManagement(db);
     },
-    async render(): Promise<void> {
-      console.log("\nName of your hunter:");
+    async render(renderer): Promise<void> {
+      renderer.line("\nName of your hunter:");
     },
   };
 }

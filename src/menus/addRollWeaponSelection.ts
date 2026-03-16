@@ -1,11 +1,11 @@
 import { sql, type SQL } from "bun";
-import type { Menu } from "../menuManager";
 import AddRoll from "./addRoll";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
 import MainMenu from "./mainMenu";
 import HunterManagement from "./hunterManagement";
 import HunterMenu from "./hunterMenu";
 import WeaponManagement from "./weaponManagement";
+import type { Menu } from "../types/Menu";
 
 export default async function AddRollWeaponSelection(
   db: SQL,
@@ -62,9 +62,9 @@ export default async function AddRollWeaponSelection(
       }
       return option();
     },
-    render: async () => {
-      console.log("Add roll for which weapon?");
-      console.table(menuOptions.menu);
+    render: async (renderer) => {
+      renderer.line("Add roll for which weapon?");
+      renderer.table(menuOptions.menu);
     },
   };
 }

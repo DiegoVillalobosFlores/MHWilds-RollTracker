@@ -1,9 +1,9 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import HunterMenu from "./hunterMenu";
 import AddHunter from "./addHunter";
 import MainMenu from "./mainMenu";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import type { Menu } from "../types/Menu";
 
 export default async function HunterManagement(db: SQL): Promise<Menu> {
   const hunters = await db`select * from Hunter`;
@@ -33,9 +33,9 @@ export default async function HunterManagement(db: SQL): Promise<Menu> {
 
       return action();
     },
-    async render(): Promise<void> {
-      console.log("Which hunter do you want to manage?");
-      console.table(menuOptions.menu);
+    async render(renderer): Promise<void> {
+      renderer.line("Which hunter do you want to manage?");
+      renderer.table(menuOptions.menu);
     },
   };
 }

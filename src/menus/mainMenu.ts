@@ -1,9 +1,9 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import HunterManagement from "./hunterManagement";
 import RollsManagement from "./rollsManagement";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
 import SettingsMenu from "./settings";
+import type { Menu } from "../types/Menu";
 
 export default async function MainMenu(dbClient: SQL): Promise<Menu> {
   const lastUsedHunter = await dbClient`
@@ -56,11 +56,9 @@ export default async function MainMenu(dbClient: SQL): Promise<Menu> {
 
       return action();
     },
-    async render(): Promise<void> {
-      console.log("\nWhat do you want to do?");
-      console.group();
-      console.table(menuOptions.menu);
-      console.groupEnd();
+    async render(renderer): Promise<void> {
+      renderer.line("\nWhat do you want to do?");
+      renderer.table(menuOptions.menu);
     },
   };
 }

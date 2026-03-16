@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch index.ts",
-    "compile:linux": "bun build --compile --target=bun-linux-x64 --minify --bytecode ./index.ts --outfile mhwilds-tracker"
+    "server": "bun run --watch server.tsx",
+    "compile:linux:modern": "bun build --compile --target=bun-linux-x64-modern --minify ./index.ts --outfile mhwilds-tracker",
+    "compile:server:linux:modern": "bun build --compile --target=bun-linux-x64-modern --minify ./server.tsx --outfile mhwilds-tracker-server"
   },
   "devDependencies": {
     "@types/bun": "latest"

@@ -1,4 +1,4 @@
-import type { Menu } from "../menuManager";
+import type { Menu } from "../types/Menu";
 
 type MenuOption = {
   command: string;
@@ -8,9 +8,9 @@ type MenuOption = {
 } | null;
 
 type MenuDisplayOption = {
-  sc: string;
+  Shortcut: string;
   Options: string;
-  action: () => Promise<Menu>;
+  [key: string]: string;
 };
 
 type MenuHandler = Record<string | number, () => Promise<Menu>>;

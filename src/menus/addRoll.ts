@@ -1,11 +1,11 @@
 import type { SQL } from "bun";
-import type { Menu } from "../menuManager";
 import RollsManagement from "./rollsManagement";
 import WeaponManagement from "./weaponManagement";
 import HunterMenu from "./hunterMenu";
 import MainMenu from "./mainMenu";
 import WeaponMenu from "./weaponMenu";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import type { Menu } from "../types/Menu";
 
 export default async function AddRoll(
   db: SQL,
@@ -97,17 +97,17 @@ export default async function AddRoll(
 
       return option();
     },
-    render: async () => {
+    render: async (renderer) => {
       if (!groupSkill) {
-        console.log("Skill Group:");
-        console.table(groupSkillMenuOptions.menu);
+        renderer.line("Skill Group:");
+        renderer.table(groupSkillMenuOptions.menu);
 
         return;
       }
 
       if (!setBonus) {
-        console.log(`Group Skill: ${groupSkill}, Set Bonus:`);
-        console.table(setBonusesMenuOptions.menu);
+        renderer.line(`Group Skill: ${groupSkill}, Set Bonus:`);
+        renderer.table(setBonusesMenuOptions.menu);
 
         return;
       }

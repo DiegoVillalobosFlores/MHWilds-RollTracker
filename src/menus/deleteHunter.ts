@@ -1,8 +1,8 @@
 import type { SQL } from "bun";
 import HunterMenu from "./hunterMenu";
-import type { Menu } from "../menuManager";
 import HunterManagement from "./hunterManagement";
 import formatMenuOptions from "../utils.ts/formatMenuOptions";
+import type { Menu } from "../types/Menu";
 
 export default async function DeleteHunter(
   db: SQL,
@@ -39,10 +39,10 @@ export default async function DeleteHunter(
 
       return option();
     },
-    async render(): Promise<void> {
-      console.log(`${hunter_name}`);
-      console.error(`Hey bruh, u shuh?`);
-      console.table(menuOptions.menu);
+    async render(renderer): Promise<void> {
+      renderer.line(`${hunter_name}`);
+      renderer.error(`Hey bruh, u shuh?`);
+      renderer.table(menuOptions.menu);
     },
   };
 }
