@@ -84,7 +84,7 @@ const server = Bun.serve({
   hostname: "0.0.0.0",
   async fetch(req, server) {
     const host = req.headers.get("host");
-    const wsUrl = process.env.WS_URL ?? `wss://${host}`;
+    const wsUrl = process.env.WS_URL ?? `ws://${host}`;
     const success = server.upgrade(req, { data: { activeMenu } });
     if (success) return undefined;
 
