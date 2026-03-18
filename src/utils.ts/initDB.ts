@@ -1,7 +1,11 @@
 import { SQL } from "bun";
 
 export default async function initDb() {
-  const sqliteDir = "./sqlite";
+  const sqliteDir = process.env.SQLITE_DIR;
+
+  if (!sqliteDir) {
+    throw new Error("SQLITE_DIR environment variable is not set");
+  }
 
   const sqlDirInit = Bun.file(`${sqliteDir}/init.txt`);
 
